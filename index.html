@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>URTOPIA 春夏活动战报</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-image: url("https://files.catbox.moe/ssquma.jpeg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        font-family: Arial, sans-serif;
+        color: white;
+        position: relative;
+      }
+
+      body::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1;
+      }
+
+      .container {
+        text-align: center;
+        width: 100%;
+        max-width: 1200px;
+        position: relative;
+        z-index: 2;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+      }
+
+      .logo-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .logo1 {
+        height: 100%;
+        width: 240px;
+        background-image: url("https://files.catbox.moe/wp1l2k.png");
+        background-size: 100% auto;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      .logo {
+        font-size: 40px;
+        font-weight: bold;
+        margin-left: 10px;
+        color: rgba(255, 255, 255, .9);
+      }
+
+      .campaign-title {
+        height: 12vh;
+        width: auto;
+        background-image: url("https://files.catbox.moe/i6yj3m.png");
+        background-size: 100% auto;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      .date {
+        background-color: rgba(0, 184, 148, 1);
+        color: white;
+        width: 300px;
+        padding: 10px 20px;
+        border-radius: 4px;
+        display: inline-block;
+        font-size: 2.5vh;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -24px;
+        margin: auto;
+      }
+
+      .stats-container {
+        position: relative;
+        border: 3px solid rgba(0, 184, 148, 1);
+        border-radius: 25px;
+        padding: 3rem;
+        margin: 0 auto;
+        min-width: 1000px;
+        background: rgba(255, 255, 255, 0.1);
+        height: 60vh;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+      }
+
+      .stat-item {
+        margin: 2rem 0;
+      }
+
+      .stat-label {
+        font-size: 3vh;
+        margin-bottom: 1rem;
+        color: #fff;
+        font-weight: 300;
+      }
+
+      .stat-value {
+        font-size: 11vh;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        font-family: 'Trebuchet MS', sans-serif;
+      }
+
+      .stat-value.sales {
+        font-size: 9vh;
+      }
+    </style>
+    <script src="/countUp.umd.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo-box">
+        <div class="logo1"></div>
+        <div class="logo">实时战报</div>
+      </div>
+
+      <div class="campaign-title"></div>
+
+      <div class="stats-container">
+        <div class="date">2025.3.28 - 2025.6.5</div>
+        <div class="stat-item" style="margin-top: 5vh;">
+          <div class="stat-label">———— 累计下单金额 ————</div>
+          <div>
+            <span class="stat-value">$</span>
+            <span id="amount" class="stat-value">0</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">———— 累计销售整车 ————</div>
+          <div id="sales" class="stat-value sales">0</div>
+        </div>
+      </div>
+      <p
+        id="updateTime"
+        style="margin-top: 20px; color: #cfcfcf; height: 24px"
+      ></p>
+    </div>
+    <script>
+      let lastAmount = 0;
+      let lastQuantity = 0;
+
+      const fetchData = () => {
+        fetch("https://b2b.newurtopia.com/ibd-api/third_party/order_summary")
+          .then((res) => res.json())
+          .then(({ data }) => {
+            try {
+              const {
+                ibd_us_data,
+                ibd_de_data,
+                shopify_us_data,
+                shopify_de_data,
+                manual_data,
+              } = data;
+
+              const totalAmount =
+                ibd_us_data.total_amount +
+                ibd_de_data.total_amount +
+                shopify_us_data.total_amount +
+                shopify_de_data.total_amount +
+                manual_data.total_amount;
+
+              const totalQuantity =
+                ibd_us_data.ebike_quantity +
+                ibd_de_data.ebike_quantity +
+                shopify_us_data.ebike_quantity +
+                shopify_de_data.ebike_quantity +
+                manual_data.ebike_quantity;
+
+              const demo = new countUp.CountUp("amount", totalAmount, {
+                startVal: lastAmount,
+                duration: 1,
+                separator: ",",
+                decimalPlaces: 2,
+              });
+
+              const demo2 = new countUp.CountUp("sales", totalQuantity, {
+                startVal: lastQuantity,
+                duration: 1,
+                decimalPlaces: 0,
+              });
+              demo.start();
+              demo2.start();
+
+              lastAmount = totalAmount;
+              lastQuantity = totalQuantity;
+
+              const now = new Date();
+              const year = now.getFullYear();
+              const month = String(now.getMonth() + 1).padStart(2, "0");
+              const day = String(now.getDate()).padStart(2, "0");
+              const hours = String(now.getHours()).padStart(2, "0");
+              const minutes = String(now.getMinutes()).padStart(2, "0");
+              const seconds = String(now.getSeconds()).padStart(2, "0");
+              const timeStr = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+              document.getElementById("updateTime").textContent =
+                "更新时间：" + timeStr;
+
+              const tableData = [
+                ["来源", "金额", "整车"],
+                [
+                  "IBD_US",
+                  ibd_us_data.total_amount,
+                  ibd_us_data.ebike_quantity,
+                ],
+                [
+                  "IBD_DE",
+                  ibd_de_data.total_amount,
+                  ibd_de_data.ebike_quantity,
+                ],
+                [
+                  "SHOPIFY_US",
+                  shopify_us_data.total_amount,
+                  shopify_us_data.ebike_quantity,
+                ],
+                [
+                  "SHOPIFY_DE",
+                  shopify_de_data.total_amount,
+                  shopify_de_data.ebike_quantity,
+                ],
+                [
+                  "MANUAL",
+                  manual_data.total_amount,
+                  manual_data.ebike_quantity,
+                ],
+              ];
+              console.table(tableData);
+            } catch (error) {}
+          });
+      };
+
+      fetchData();
+
+      setInterval(() => {
+        fetchData();
+      }, 1000 * 30);
+    </script>
+  </body>
+</html>
